@@ -1,0 +1,78 @@
+{
+  "name": "bch-token-sweep",
+  "version": "1.0.0",
+  "description": "An npm library for sweeping BCH and SLP Tokens from a paper wallet.",
+  "main": "dist/bch-token-sweep.min.js",
+  "scripts": {
+    "start": "node index.js",
+    "test": "npm run lint && TEST=unit nyc mocha test/unit/",
+    "test:integration": "mocha --timeout 60000 test/integration/",
+    "test:temp": "nyc mocha test/unit/blockchain.unit.js",
+    "lint": "standard --env mocha --fix",
+    "docs": "./node_modules/.bin/apidoc -i src/ -o docs",
+    "coverage": "nyc report --reporter=text-lcov | coveralls",
+    "coverage:report": "nyc --reporter=html mocha test/unit/ --exit",
+    "build": "browserify index.js -p tinyify --s Sweep -o dist/bch-token-sweep.min.js"
+  },
+  "keywords": [
+    "bitcoin",
+    "bitcoin cash",
+    "wallet",
+    "javascript",
+    "cryptocurrency",
+    "react",
+    "front end",
+    "client",
+    "apidoc",
+    "slp",
+    "tokens"
+  ],
+  "author": "Chris Troutner <chris.troutner@gmail.com>",
+  "contributors": [
+    "Andre Cabrera (andrecabrera@protonmail.ch)",
+    "Daniel Gonzalez <danielhumgon@gmail.com>"
+  ],
+  "license": "MIT",
+  "apidoc": {
+    "title": "bch-token-sweep",
+    "url": "localhost:5000"
+  },
+  "repository": "Permissionless-Software-Foundation/bch-token-sweep",
+  "dependencies": {
+    "@psf/bch-js": "^3.7.1",
+    "apidoc": "^0.23.0",
+    "bch-donation": "^1.1.0",
+    "bignumber.js": "^9.0.0"
+  },
+  "devDependencies": {
+    "browserify": "^16.5.2",
+    "chai": "^4.1.2",
+    "coveralls": "^3.0.2",
+    "eslint": "5.16.0",
+    "eslint-config-prettier": "^6.0.0",
+    "eslint-config-standard": "^14.1.0",
+    "eslint-plugin-node": "^11.1.0",
+    "eslint-plugin-prettier": "^3.1.0",
+    "eslint-plugin-standard": "^4.0.0",
+    "husky": "^4.2.5",
+    "mocha": "^7.0.1",
+    "nyc": "^15.0.0",
+    "semantic-release": "^17.0.0",
+    "sinon": "^9.0.2",
+    "standard": "^14.3.1",
+    "tinyify": "^3.0.0"
+  },
+  "release": {
+    "publish": [
+      {
+        "path": "@semantic-release/npm",
+        "npmPublish": true
+      }
+    ]
+  },
+  "husky": {
+    "hooks": {
+      "pre-commit": "npm run lint"
+    }
+  }
+}
