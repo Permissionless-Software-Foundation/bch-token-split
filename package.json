@@ -1,8 +1,8 @@
 {
-  "name": "bch-token-sweep",
+  "name": "bch-token-split",
   "version": "1.0.0",
-  "description": "An npm library for sweeping BCH and SLP Tokens from a paper wallet.",
-  "main": "dist/bch-token-sweep.min.js",
+  "description": "An npm library for splitting BCH and SLP Tokens from a paper wallet after the Nov 2020 BCH chain split.",
+  "main": "dist/bch-token-split.min.js",
   "scripts": {
     "start": "node index.js",
     "test": "npm run lint && TEST=unit nyc mocha test/unit/",
@@ -12,7 +12,7 @@
     "docs": "./node_modules/.bin/apidoc -i src/ -o docs",
     "coverage": "nyc report --reporter=text-lcov | coveralls",
     "coverage:report": "nyc --reporter=html mocha test/unit/ --exit",
-    "build": "browserify index.js -p tinyify --s Sweep -o dist/bch-token-sweep.min.js"
+    "build": "browserify index.js -p tinyify --s Sweep -o dist/bch-token-split.min.js"
   },
   "keywords": [
     "bitcoin",
@@ -29,17 +29,16 @@
   ],
   "author": "Chris Troutner <chris.troutner@gmail.com>",
   "contributors": [
-    "Andre Cabrera (andrecabrera@protonmail.ch)",
     "Daniel Gonzalez <danielhumgon@gmail.com>"
   ],
   "license": "MIT",
   "apidoc": {
-    "title": "bch-token-sweep",
+    "title": "bch-token-split",
     "url": "localhost:5000"
   },
-  "repository": "Permissionless-Software-Foundation/bch-token-sweep",
+  "repository": "Permissionless-Software-Foundation/bch-token-split",
   "dependencies": {
-    "@psf/bch-js": "^3.7.1",
+    "@psf/bch-js": "^3.8.2",
     "apidoc": "^0.23.0",
     "bch-donation": "^1.1.0",
     "bignumber.js": "^9.0.0"
