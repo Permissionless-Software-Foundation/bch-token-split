@@ -27,17 +27,4 @@ describe('#index.js', () => {
       assert.property(uut.bchnSweeper.receiver, 'utxos')
     })
   })
-
-  describe('#getDust', () => {
-    it('should get dust from faucet', async () => {
-      const addr = uut.abcSweeper.paper.bchAddr
-      console.log(`addr: ${addr}`)
-
-      const result = await uut.getDust(addr)
-      console.log(`result: ${JSON.stringify(result, null, 2)}`)
-
-      assert.equal(result.success, true)
-      assert.isString(result.txid)
-    })
-  })
 })

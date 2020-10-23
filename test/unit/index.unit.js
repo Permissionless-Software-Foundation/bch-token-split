@@ -7,8 +7,9 @@ const assert = require('chai').assert
 const sinon = require('sinon')
 
 // Local libraries
-const SweeperLib = require('../../index.js')
-// const mockData = require('./mocks/bch-token-sweep-mocks.js')
+const SplitLib = require('../../index')
+// const mockDataLib = require('./mocks/index.mocks')
+// let mockData
 
 let sandbox
 let uut
@@ -22,14 +23,16 @@ describe('#index.js', () => {
   beforeEach(() => {
     sandbox = sinon.createSandbox()
 
-    uut = new SweeperLib(paperWIF, receiverWIF)
+    uut = new SplitLib(paperWIF, receiverWIF)
+
+    // mockData = Object.assign({}, mockDataLib)
   })
 
   afterEach(() => sandbox.restore())
 
   describe('#constructor', () => {
     it('should instantiate the sweep library', () => {
-      uut = new SweeperLib(paperWIF, receiverWIF)
+      uut = new SplitLib(paperWIF, receiverWIF)
 
       assert.property(uut, 'abcSweeper')
       assert.property(uut, 'bchnSweeper')
@@ -37,7 +40,7 @@ describe('#index.js', () => {
 
     it('should throw an error if paper wallet wif is not included', () => {
       try {
-        uut = new SweeperLib()
+        uut = new SplitLib()
 
         assert.fail('Unexpected result')
       } catch (err) {
@@ -47,7 +50,7 @@ describe('#index.js', () => {
 
     it('should throw an error if receiver wallet wif is not included', () => {
       try {
-        uut = new SweeperLib(paperWIF)
+        uut = new SplitLib(paperWIF)
 
         assert.fail('Unexpected result')
       } catch (err) {
@@ -56,11 +59,29 @@ describe('#index.js', () => {
     })
   })
 
-  // describe('#getBlockchainData', () => {
-  //   it('should populate blockchain data', async () => {
-  //     await uut.getBlockchainData()
-  //   })
-  // })
+  describe('#getBlockchainData', () => {
+    // Simply goes through the motions to make sure the flow is as expected.
+    it('should populate blockchain data', async () => {
+      sandbox.stub(uut.abcSweeper, 'populateObjectFromNetwork').resolves({})
+      sandbox.stub(uut.bchnSweeper, 'populateObjectFromNetwork').resolves({})
+
+      await uut.getBlockchainData()
+
+      assert.property(uut.abcSweeper.receiver, 'balance')
+    })
+
+    it('should handle errors', async () => {
+      try {
+        sandbox.stub(uut.abcSweeper, 'populateObjectFromNetwork').rejects(new Error('test error'))
+
+        await uut.getBlockchainData()
+
+        assert.fail('Unexpected result')
+      } catch (err) {
+        assert.include(err.message, 'test error')
+      }
+    })
+  })
 
   // describe('#populateObjectFromNetwork', () => {
   //   it('should populate the instance with UTXO data', async () => {
