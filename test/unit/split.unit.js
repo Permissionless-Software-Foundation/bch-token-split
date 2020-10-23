@@ -5,6 +5,7 @@
 // External npm libraries
 const assert = require('chai').assert
 const sinon = require('sinon')
+const cloneDeep = require('lodash.clonedeep')
 
 // Local libraries
 const SplitUtilLib = require('../../lib/split')
@@ -16,7 +17,7 @@ let sandbox
 
 describe('#split.js', () => {
   beforeEach(() => {
-    mockData = Object.assign({}, mockDataLib)
+    mockData = cloneDeep(mockDataLib)
 
     uut = new SplitUtilLib({})
 
@@ -51,7 +52,7 @@ describe('#split.js', () => {
     it('should return 2 if receiver wallet can pay fee in ABC', () => {
       // Simulate a new wallet on the ABC chain that has no balance on the
       // BCHN chain.
-      const bchnSweeper = Object.assign({}, mockData.mockSweeper)
+      const bchnSweeper = cloneDeep(mockData.mockSweeper)
       bchnSweeper.receiver.balance = 0
 
       // Simulate a wallet on ABC that has ABC-only BCH in the web wallet to
@@ -128,26 +129,63 @@ describe('#split.js', () => {
 
   describe('#getDust', () => {
     it('should get dust from faucet', async () => {
-      sandbox.stub(uut.axios, 'request').resolves({ data: mockData.mockGetDust })
+      sandbox
+        .stub(uut.axios, 'request')
+        .resolves({ data: mockData.mockGetDust })
 
-      const addr = mockData.mockSweeper.paper.bchAddr
-      // console.log(`addr: ${addr}`)
-
-      const result = await uut.getDust(addr)
+      const result = await uut.getDust(mockData.mockSweeper)
       // console.log(`result: ${JSON.stringify(result, null, 2)}`)
 
-      assert.equal(result.success, true)
-      assert.isString(result.txid)
+      assert.isString(result)
     })
 
     it('should catch and throw an error', async () => {
       try {
+        // Mock live network calls.
         sandbox.stub(uut.axios, 'request').rejects(new Error('test error'))
 
-        const addr = mockData.mockSweeper.paper.bchAddr
-        await uut.getDust(addr)
+        await uut.getDust(mockData.mockSweeper)
 
         assert.fail('Unexpected result')
+      } catch (err) {
+        assert.include(err.message, 'test error')
+      }
+    })
+  })
+
+  describe('#verifyDust', () => {
+    it('should return true if TXID matches', async () => {
+      // Add the mock dust UTXO to the mocked Sweeper instance.
+      mockData.mockSweeper.paper.utxos = cloneDeep(
+        mockDataLib.mockSweeper.paper.utxos
+      )
+      mockData.mockSweeper.paper.utxos.bchUtxos.push(mockData.mockDustUtxo)
+
+      // Get the txid from the mock returned value of getDust()
+      const txid = mockData.mockGetDust.txid
+
+      const result = await uut.verifyDust(mockData.mockSweeper, txid)
+      assert.equal(result, true)
+    })
+
+    it('should return false if TXID is not found', async () => {
+      // Get the txid from the mock returned value of getDust()
+      const txid = mockData.mockGetDust.txid
+
+      const result = await uut.verifyDust(mockData.mockSweeper, txid)
+      assert.equal(result, false)
+    })
+
+    it('should catch and throw an error', async () => {
+      try {
+        // Force an error.
+        sandbox
+          .stub(mockData.mockSweeper, 'populateObjectFromNetwork')
+          .rejects(new Error('test error'))
+
+        const txid = mockData.mockGetDust.txid
+
+        await uut.verifyDust(mockData.mockSweeper, txid)
       } catch (err) {
         assert.include(err.message, 'test error')
       }

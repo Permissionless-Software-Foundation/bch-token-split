@@ -5,7 +5,7 @@
 
 - If paper wallet has more than one token class, throw error.
 
-- app requests dust from ABC chain
+- app requests split dust from ABC chain
 
 - app waits until ABC indexer shows dust transaction
 

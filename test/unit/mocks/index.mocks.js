@@ -47,7 +47,7 @@ const mockPaperWallet = {
 }
 
 const receiverBchUtxo = {
-  height: 0,
+  height: 658429,
   tx_hash: '584f2fd3c0876dc4e8f913acc8fbd161f8ea6cf0afe1776ca6aca2de5b0c5cef',
   tx_pos: 0,
   value: 11099,

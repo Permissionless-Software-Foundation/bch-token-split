@@ -8,8 +8,6 @@ const sinon = require('sinon')
 
 // Local libraries
 const SplitLib = require('../../index')
-// const mockDataLib = require('./mocks/index.mocks')
-// let mockData
 
 let sandbox
 let uut
@@ -24,8 +22,6 @@ describe('#index.js', () => {
     sandbox = sinon.createSandbox()
 
     uut = new SplitLib(paperWIF, receiverWIF)
-
-    // mockData = Object.assign({}, mockDataLib)
   })
 
   afterEach(() => sandbox.restore())
@@ -72,7 +68,9 @@ describe('#index.js', () => {
 
     it('should handle errors', async () => {
       try {
-        sandbox.stub(uut.abcSweeper, 'populateObjectFromNetwork').rejects(new Error('test error'))
+        sandbox
+          .stub(uut.abcSweeper, 'populateObjectFromNetwork')
+          .rejects(new Error('test error'))
 
         await uut.getBlockchainData()
 
