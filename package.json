@@ -12,7 +12,7 @@
     "docs": "./node_modules/.bin/apidoc -i src/ -o docs",
     "coverage": "nyc report --reporter=text-lcov | coveralls",
     "coverage:report": "nyc --reporter=html mocha test/unit/ --exit",
-    "build": "browserify index.js -p tinyify --s Sweep -o dist/bch-token-split.min.js"
+    "build": "browserify index.js -p tinyify --s BchSplit -o dist/bch-token-split.min.js"
   },
   "keywords": [
     "bitcoin",
