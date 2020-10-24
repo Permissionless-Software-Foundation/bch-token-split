@@ -9,9 +9,9 @@
 
 - app waits until ABC indexer shows dust transaction
 
-- BCH and tokens are swept to BCHN address, including the new dust
+- BCH and tokens are swept to ABC address, , including the new dust
 
-- BCH and tokens are swept to ABC address
+- BCH and tokens are swept to BCHN address
 */
 
 'use strict'
@@ -55,11 +55,7 @@ class Splitter {
     )
 
     // Instantiate the biz-logic utility library.
-    const config = {
-      bchjsAbc: this.bchjsAbc,
-      bchjsBchn: this.bchjsBchn
-    }
-    this.splitLib = new SplitLib(config)
+    this.splitLib = new SplitLib()
   }
 
   // Get blockchain information for the paper wallet from each network.
@@ -93,6 +89,52 @@ class Splitter {
       console.error('Error in getBlockchainData()')
       // throw new Error(e.message)
       throw e
+    }
+  }
+
+  // This is the macro function that orchestrates the splitting of BCH and SLP
+  // tokens. This function assumes that getBlockchainData() has already been
+  // executed and the instance of this class has already been populated with
+  // blockchain data.
+  async splitCoins (toAbcAddr, toBchnAddr) {
+    try {
+      // Ensure fee can be paid, return fee source
+      const feeSource = this.splitLib.determineFeeSource(
+        this.abcSweeper,
+        this.bchnSweeper
+      )
+      if (!feeSource) throw new Error('Not enough BCH to pay splitting fee')
+
+      // app requests split dust from ABC chain
+      const dustTxid = await this.splitLib.getDust(this.abcSweeper)
+      console.log(`txid from dust faucet: ${dustTxid}`)
+
+      // app waits until ABC indexer shows dust transaction
+      let dustArrived = false
+      while (!dustArrived) {
+        const now = new Date()
+
+        console.log(`Checking that split dust was delivered... ${now.toLocaleString()}`)
+
+        // Wait 2 seconds between retries.
+        await this.splitLib.sleep(5000)
+
+        dustArrived = await this.splitLib.verifyDust(this.abcSweeper, dustTxid)
+      }
+
+      // BCH and tokens are swept to ABC address, , including the new dust
+      const hexAbc = await this.abcSweeper.sweepTo(toAbcAddr)
+      // const txidAbc = await this.abcSweeper.blockchain.broadcast(hexAbc)
+
+      // BCH and tokens are swept to BCHN address
+      const hexBchn = await this.bchnSweeper.sweepTo(toBchnAddr)
+      // const txidBchn = await this.bchnSweeper.blockchain.broadcast(hexBchn)
+
+      return { hexAbc, hexBchn }
+      // return { txidAbc, txidBchn }
+    } catch (err) {
+      console.error('Error in splitCoins()')
+      throw err
     }
   }
 }

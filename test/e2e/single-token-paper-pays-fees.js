@@ -12,28 +12,31 @@ const paperWif = 'KxtteuKQ2enad5jH2o5eGkSaTgas49kWmvADW6qqhLAURrxuUo7m'
 const receiverWif = 'L3nSksvTtHHBRP3HNMDhy6hDKpu88PQvrLGzLJn3FYX2diKqC1GD'
 
 // Unit under test
-const SweeperLib = require('../../index')
+const SplitterLib = require('../../index')
 
 async function runTest () {
   try {
     // Instancing the library
-    const sweeperLib = new SweeperLib(paperWif, receiverWif)
-    await sweeperLib.populateObjectFromNetwork()
+    const splitterLib = new SplitterLib(paperWif, receiverWif)
+    await splitterLib.getBlockchainData()
 
-    await checkSetup(sweeperLib)
+    await checkSetup(splitterLib)
 
     console.log(
       `UTXOsFromPaperWallet: ${JSON.stringify(
-        sweeperLib.UTXOsFromPaperWallet,
+        splitterLib.abcSweeper.UTXOsFromPaperWallet,
         null,
         2
       )}`
     )
 
-    const hex = await sweeperLib.sweepTo(sweeperLib.receiver.slpAddr)
-    // console.log(`hex: ${hex}`)
+    const { hexAbc, hexBchn } = await splitterLib.splitCoins(
+      splitterLib.abcSweeper.receiver.slpAddr,
+      splitterLib.abcSweeper.receiver.slpAddr
+    )
+    console.log(`hex: ${hexBchn}`)
 
-    const txid = await sweeperLib.blockchain.broadcast(hex)
+    const txid = await splitterLib.abcSweeper.blockchain.broadcast(hexAbc)
 
     console.log('Transaction ID', txid)
     console.log(`https://explorer.bitcoin.com/bch/tx/${txid}`)
@@ -44,26 +47,28 @@ async function runTest () {
 runTest()
 
 // Check to ensure the test is set up correctly.
-async function checkSetup (sweeperLib) {
+async function checkSetup (splitterLib) {
   // console.log(
   //   `receiving wallet BCH UTXOs: ${JSON.stringify(
-  //     sweeperLib.UTXOsFromPaperWallet.bchUTXOs,
+  //     splitterLib.UTXOsFromPaperWallet.bchUTXOs,
   //     null,
   //     2
   //   )}`
   // )
   // Ensure the Paper has a UTXO.
-  if (sweeperLib.UTXOsFromPaperWallet.bchUTXOs.length === 0) {
+  if (splitterLib.abcSweeper.UTXOsFromPaperWallet.bchUTXOs.length === 0) {
     throw new Error(
       `Paper wallet does not have BCH. Send 0.00005 BCH to ${
-        sweeperLib.paper.bchAddr
+        splitterLib.abcSweeper.paper.bchAddr
       }`
     )
   }
 
   // Ensure the Receiver has enough BCH to pay transaction fees.
-  console.log(`Paper wallet balance: ${sweeperLib.BCHBalanceFromPaperWallet}`)
-  if (sweeperLib.BCHBalanceFromPaperWallet < 5000) {
+  console.log(
+    `Paper wallet balance: ${splitterLib.abcSweeper.BCHBalanceFromPaperWallet}`
+  )
+  if (splitterLib.abcSweeper.BCHBalanceFromPaperWallet < 5000) {
     throw new Error(
       'Paper wallet has less than 0.00005 BCH. Send that much to pay for transaction fees.'
     )
@@ -71,15 +76,15 @@ async function checkSetup (sweeperLib) {
 
   // console.log(
   //   `paper wallet SLP UTXOs: ${JSON.stringify(
-  //     sweeperLib.UTXOsFromPaperWallet.tokenUTXOs,
+  //     splitterLib.UTXOsFromPaperWallet.tokenUTXOs,
   //     null,
   //     2
   //   )}`
   // )
-  if (sweeperLib.UTXOsFromPaperWallet.tokenUTXOs.length === 0) {
+  if (splitterLib.abcSweeper.UTXOsFromPaperWallet.tokenUTXOs.length === 0) {
     throw new Error(
       `Paper wallet does not have any tokens! Send some SLP tokens to ${
-        sweeperLib.paper.slpAddr
+        splitterLib.abcSweeper.paper.slpAddr
       }`
     )
   }

@@ -191,4 +191,10 @@ describe('#split.js', () => {
       }
     })
   })
+
+  describe('#sleep', () => {
+    it('should sleep for 10 mS', async () => {
+      await uut.sleep(10)
+    })
+  })
 })
