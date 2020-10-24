@@ -156,10 +156,13 @@ describe('#split.js', () => {
   describe('#verifyDust', () => {
     it('should return true if TXID matches', async () => {
       // Add the mock dust UTXO to the mocked Sweeper instance.
-      mockData.mockSweeper.paper.utxos = cloneDeep(
-        mockDataLib.mockSweeper.paper.utxos
-      )
-      mockData.mockSweeper.paper.utxos.bchUtxos.push(mockData.mockDustUtxo)
+      // mockData.mockSweeper.paper.utxos = cloneDeep(
+      //   mockDataLib.mockSweeper.paper.utxos
+      // )
+      // mockData.mockSweeper.paper.utxos.bchUtxos.push(mockData.mockDustUtxo)
+      mockData.mockSweeper.UTXOsFromPaperWallet = {
+        bchUTXOs: [mockData.mockDustUtxo]
+      }
 
       // Get the txid from the mock returned value of getDust()
       const txid = mockData.mockGetDust.txid
@@ -171,6 +174,9 @@ describe('#split.js', () => {
     it('should return false if TXID is not found', async () => {
       // Get the txid from the mock returned value of getDust()
       const txid = mockData.mockGetDust.txid
+      mockData.mockSweeper.UTXOsFromPaperWallet = {
+        bchUTXOs: [mockData.mockSweeper.paper.utxos.bchUtxos]
+      }
 
       const result = await uut.verifyDust(mockData.mockSweeper, txid)
       assert.equal(result, false)
