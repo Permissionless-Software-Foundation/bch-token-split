@@ -86,6 +86,7 @@ describe('#index.js', () => {
       // Mock dependent functions to force the 'happy path'.
       sandbox.stub(uut.splitLib, 'determineFeeSource').returns(1)
       sandbox.stub(uut.splitLib, 'getDust').resolves('test txid')
+      sandbox.stub(uut.splitLib, 'sleep').resolves()
       sandbox.stub(uut.splitLib, 'verifyDust').resolves(true)
       sandbox.stub(uut.abcSweeper, 'sweepTo').resolves('hex1 string')
       sandbox.stub(uut.bchnSweeper, 'sweepTo').resolves('hex2 string')
@@ -97,33 +98,20 @@ describe('#index.js', () => {
       assert.isString(hexAbc)
       assert.isString(hexBchn)
     })
+
+    it('should throw an error if fee can not be paid', async () => {
+      try {
+        sandbox.stub(uut.splitLib, 'determineFeeSource').returns(0)
+
+        const addr = uut.abcSweeper.receiver.slpAddr
+
+        await uut.splitCoins(addr, addr)
+
+        assert.fail('unexpected result')
+      } catch (err) {
+        // console.log(err)
+        assert.include(err.message, 'Not enough BCH to pay splitting fee')
+      }
+    })
   })
 })
-
-// Mocks the UTXOs for different tests.
-// function mockUtxos () {
-//   sandbox
-//     .stub(uut.blockchain, 'getBalanceForCashAddr')
-//     // The reciever wallet.
-//     .onCall(0)
-//     .resolves(10000)
-//     // The paper wallet.
-//     .onCall(1)
-//     .resolves(546)
-//   sandbox
-//     .stub(uut.blockchain, 'getUtxos')
-//     // The reciever wallet.
-//     .onCall(0)
-//     .resolves(mockData.utxosFromReceiver)
-//     // The paper wallet.
-//     .onCall(1)
-//     .resolves(mockData.utxosFromPaperWallet)
-//   sandbox
-//     .stub(uut.blockchain, 'filterUtxosByTokenAndBch')
-//     // The reciever wallet.
-//     .onCall(0)
-//     .resolves(mockData.filteredUtxosFromReceiver)
-//     // The paper wallet.
-//     .onCall(1)
-//     .resolves(mockData.filteredUtxosFromPaperWallet)
-// }

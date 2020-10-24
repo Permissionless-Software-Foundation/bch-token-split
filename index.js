@@ -110,14 +110,13 @@ class Splitter {
       console.log(`txid from dust faucet: ${dustTxid}`)
 
       // app waits until ABC indexer shows dust transaction
-      let dustArrived = await this.splitLib.verifyDust(this.abcSweeper, dustTxid)
+      let dustArrived = false
       while (!dustArrived) {
         const now = new Date()
+        console.log(`Checking that split dust was delivered... ${now.toLocaleString()}`)
 
         // Wait 2 seconds between retries.
         await this.splitLib.sleep(2000)
-
-        console.log(`Checking that split dust was delivered... ${now.toLocaleString()}`)
 
         dustArrived = await this.splitLib.verifyDust(this.abcSweeper, dustTxid)
       }
