@@ -81,212 +81,23 @@ describe('#index.js', () => {
     })
   })
 
-  // describe('#populateObjectFromNetwork', () => {
-  //   it('should populate the instance with UTXO data', async () => {
-  //     // Mock the function that make network calls.
-  //     mockUtxos()
-  //
-  //     await uut.populateObjectFromNetwork()
-  //     // console.log('uut: ', uut)
-  //
-  //     // Assert that the instance has the balance and utxo information.
-  //     assert.equal(uut.BCHBalanceFromReceiver, 10000)
-  //     assert.equal(uut.BCHBalanceFromPaperWallet, 546)
-  //
-  //     assert.equal(
-  //       uut.UTXOsFromReceiver.bchUTXOs,
-  //       mockData.filteredUtxosFromReceiver.bchUTXOs
-  //     )
-  //     assert.equal(
-  //       uut.UTXOsFromPaperWallet.tokenUTXOs,
-  //       mockData.filteredUtxosFromPaperWallet.tokenUTXOs
-  //     )
-  //     assert.equal(
-  //       uut.UTXOsFromPaperWallet.bchUTXOs,
-  //       mockData.filteredUtxosFromPaperWallet.bchUTXOs
-  //     )
-  //   })
-  //
-  //   it('should handle and throw an error', async () => {
-  //     try {
-  //       sandbox
-  //         .stub(uut.blockchain, 'getBalanceForCashAddr')
-  //         .rejects(new Error('test error'))
-  //
-  //       // Populate the instance with UTXO data.
-  //       await uut.populateObjectFromNetwork()
-  //
-  //       assert.equal(true, false, 'Unexpect result')
-  //     } catch (err) {
-  //       // console.log(err)
-  //       assert.include(err.message, 'test error')
-  //     }
-  //   })
-  // })
-  //
-  // describe('#getTokenIds', () => {
-  //   it('should return token ID for a single UTXO', () => {
-  //     const result = uut.getTokenIds(
-  //       mockData.filteredUtxosFromPaperWallet.tokenUTXOs
-  //     )
-  //     // console.log(`result: ${JSON.stringify(result, null, 2)}`)
-  //
-  //     assert.isArray(result)
-  //     assert.equal(result.length, 1)
-  //   })
-  //
-  //   it('should return token IDs for two token class UTXOs', () => {
-  //     const result = uut.getTokenIds(mockData.mockTwoTokenUtxos)
-  //     // console.log(`result: ${JSON.stringify(result, null, 2)}`)
-  //
-  //     assert.isArray(result)
-  //     assert.equal(result.length, 2)
-  //   })
-  //
-  //   it('should throw an error if input is not an array', () => {
-  //     try {
-  //       uut.getTokenIds('12345')
-  //
-  //       assert.equal(true, false, 'Unexpected result')
-  //     } catch (err) {
-  //       // console.log(err)
-  //       assert.include(err.message, 'Input must be an array')
-  //     }
-  //   })
-  //
-  //   it('should return an empty array if given an empty array', () => {
-  //     const result = uut.getTokenIds([])
-  //
-  //     assert.equal(result.length, 0)
-  //   })
-  // })
-  //
-  // describe('#sweepTo', () => {
-  //   it('should throw an error if paper wallet has no tokens or BCH', async () => {
-  //     try {
-  //       // Mock the function that make network calls.
-  //       mockUtxos()
-  //
-  //       // Populate the instance with UTXO data.
-  //       await uut.populateObjectFromNetwork()
-  //
-  //       // Force paper wallet UTXOs to be empty.
-  //       uut.UTXOsFromPaperWallet.tokenUTXOs = []
-  //       uut.UTXOsFromPaperWallet.bchUTXOs = []
-  //
-  //       await uut.sweepTo(uut.receiver.slpAddr)
-  //     } catch (err) {
-  //       // console.log(err)
-  //       assert.include(err.message, 'No BCH or tokens found on paper wallet')
-  //     }
-  //   })
-  //
-  //   it('should generate a BCH-only transaction if paper wallet has no tokens', async () => {
-  //     // Mock the function that make network calls.
-  //     mockUtxos()
-  //
-  //     // Populate the instance with UTXO data.
-  //     await uut.populateObjectFromNetwork()
-  //
-  //     // Force paper wallet token UTXOs to be empty.
-  //     uut.UTXOsFromPaperWallet.tokenUTXOs = []
-  //
-  //     // Force paper wallet to have a BCH UTXO.
-  //     uut.UTXOsFromPaperWallet.bchUTXOs =
-  //       mockData.filteredUtxosFromReceiver.bchUTXOs
-  //     uut.BCHBalanceFromPaperWallet = 10000
-  //
-  //     const hex = await uut.sweepTo(uut.receiver.slpAddr)
-  //
-  //     assert.isString(hex)
-  //   })
-  //
-  //   it('should throw error if not enough BCH to pay tx fees', async () => {
-  //     try {
-  //       // Mock the function that make network calls.
-  //       mockUtxos()
-  //
-  //       // Populate the instance with UTXO data.
-  //       await uut.populateObjectFromNetwork()
-  //
-  //       // Force paper wallet token UTXOs to be empty.
-  //       uut.UTXOsFromPaperWallet.tokenUTXOs = []
-  //
-  //       // Force paper wallet to have a BCH UTXO.
-  //       uut.UTXOsFromPaperWallet.bchUTXOs =
-  //         mockData.filteredUtxosFromReceiver.bchUTXOs
-  //
-  //       const hex = await uut.sweepTo(uut.receiver.slpAddr)
-  //
-  //       assert.isString(hex)
-  //     } catch (err) {
-  //       assert.include(err.message, 'Not enough BCH on paper wallet to pay fees')
-  //     }
-  //   })
-  //
-  //   it('should generate a token-sweep tx if paper wallet has a single token and no BCH', async () => {
-  //     // Mock the function that make network calls.
-  //     mockUtxos()
-  //
-  //     // Populate the instance with UTXO data.
-  //     await uut.populateObjectFromNetwork()
-  //
-  //     const hex = await uut.sweepTo(uut.receiver.slpAddr)
-  //
-  //     assert.isString(hex)
-  //   })
-  //
-  //   it('should generate a token-sweep tx if paper wallet has two token types and no BCH', async () => {
-  //     // Mock the function that make network calls.
-  //     mockUtxos()
-  //
-  //     // Populate the instance with UTXO data.
-  //     await uut.populateObjectFromNetwork()
-  //
-  //     // Force paper wallet token UTXOs to contain two token types.
-  //     uut.UTXOsFromPaperWallet.tokenUTXOs = mockData.mockTwoTokenUtxos
-  //
-  //     const hex = await uut.sweepTo(uut.receiver.slpAddr)
-  //
-  //     assert.isString(hex)
-  //   })
-  //
-  //   it('should generate a token-sweep tx if paper wallet has a single token and BCH', async () => {
-  //     // Mock the function that make network calls.
-  //     mockUtxos()
-  //
-  //     // Populate the instance with UTXO data.
-  //     await uut.populateObjectFromNetwork()
-  //
-  //     // Adjust values
-  //     uut.paper = uut.blockchain.expandWif(
-  //       'KxtteuKQ2enad5jH2o5eGkSaTgas49kWmvADW6qqhLAURrxuUo7m'
-  //     )
-  //     uut.UTXOsFromPaperWallet = mockData.mockAllPaperUtxosOneToken
-  //
-  //     const hex = await uut.sweepTo(uut.receiver.slpAddr)
-  //
-  //     assert.isString(hex)
-  //   })
-  //
-  //   it('should generate a token-sweep tx if paper wallet has two tokens and BCH', async () => {
-  //     // Mock the function that make network calls.
-  //     mockUtxos()
-  //
-  //     // Populate the instance with UTXO data.
-  //     await uut.populateObjectFromNetwork()
-  //
-  //     // Adjust values
-  //     uut.paper = uut.blockchain.expandWif(
-  //       'KxtteuKQ2enad5jH2o5eGkSaTgas49kWmvADW6qqhLAURrxuUo7m'
-  //     )
-  //     uut.UTXOsFromPaperWallet = mockData.mockAllPaperUtxosTwoTokens
-  //
-  //     const hex = await uut.sweepTo(uut.receiver.slpAddr)
-  //
-  //     assert.isString(hex)
-  //   })
-  // })
+  describe('#splitCoins', () => {
+    it('should return two hex transactions', async () => {
+      // Mock dependent functions to force the 'happy path'.
+      sandbox.stub(uut.splitLib, 'determineFeeSource').returns(1)
+      sandbox.stub(uut.splitLib, 'getDust').resolves('test txid')
+      sandbox.stub(uut.splitLib, 'verifyDust').resolves(true)
+      sandbox.stub(uut.abcSweeper, 'sweepTo').resolves('hex1 string')
+      sandbox.stub(uut.bchnSweeper, 'sweepTo').resolves('hex2 string')
+
+      const addr = uut.abcSweeper.receiver.slpAddr
+
+      const { hexAbc, hexBchn } = await uut.splitCoins(addr, addr)
+
+      assert.isString(hexAbc)
+      assert.isString(hexBchn)
+    })
+  })
 })
 
 // Mocks the UTXOs for different tests.

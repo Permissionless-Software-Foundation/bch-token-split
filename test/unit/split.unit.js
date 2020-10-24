@@ -28,6 +28,9 @@ describe('#split.js', () => {
 
   describe('#determineFeeSource', () => {
     it('should return 0 if no source has enough funds', () => {
+      mockData.mockSweeper.paper.balance = 546
+      mockData.mockSweeper.receiver.balance = 546
+
       const result = uut.determineFeeSource(
         mockData.mockSweeper,
         mockData.mockSweeper
