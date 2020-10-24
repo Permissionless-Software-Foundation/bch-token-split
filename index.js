@@ -32,6 +32,7 @@ const SplitLib = require('./lib/split')
 // Constants
 // const FULLSTACK_MAINNET_API_FREE = 'https://free-main.fullstack.cash/v3/'
 // const DEFAULT_BCH_WRAPPER = new BCHJS({ restURL: FULLSTACK_MAINNET_API_FREE })
+const DONATION = 2000
 
 class Splitter {
   constructor (wifFromPaperWallet, wifFromReceiver, BCHWrapper) {
@@ -46,16 +47,21 @@ class Splitter {
     this.abcSweeper = new Sweeper(
       wifFromPaperWallet,
       wifFromReceiver,
-      this.bchjsAbc
+      this.bchjsAbc,
+      DONATION
     )
     this.bchnSweeper = new Sweeper(
       wifFromPaperWallet,
       wifFromReceiver,
-      this.bchjsBchn
+      this.bchjsBchn,
+      DONATION
     )
 
     // Instantiate the biz-logic utility library.
-    this.splitLib = new SplitLib()
+    const config = {
+      donation: DONATION
+    }
+    this.splitLib = new SplitLib(config)
   }
 
   // Get blockchain information for the paper wallet from each network.
