@@ -1,17 +1,14 @@
 /* eslint-disable no-async-promise-executor */
 
 /*
-- Ensure fee can be paid, return fee source
+  Basic workflow for splitting tokens:
 
-- If paper wallet has more than one token class, throw error.
-
-- app requests split dust from ABC chain
-
-- app waits until ABC indexer shows dust transaction
-
-- BCH and tokens are swept to ABC address, , including the new dust
-
-- BCH and tokens are swept to BCHN address
+  - Ensure fee can be paid, return fee source
+  - If paper wallet has more than one token class, throw error.
+  - app requests split dust from ABC chain
+  - app waits until ABC indexer shows dust transaction
+  - BCH and tokens are swept to ABC address, , including the new dust
+  - BCH and tokens are swept to BCHN address
 */
 
 'use strict'
