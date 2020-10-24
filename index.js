@@ -109,6 +109,7 @@ class Splitter {
         this.abcSweeper,
         this.bchnSweeper
       )
+      console.log(`fee source: ${feeSource}`)
       if (!feeSource) throw new Error('Not enough BCH to pay splitting fee')
 
       // app requests split dust from ABC chain
