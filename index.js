@@ -1,222 +1,141 @@
 /* eslint-disable no-async-promise-executor */
 
 /*
-  Workflow for sweeping BCH and Tokens:
-  - Expand the WIF information with Blockchain.expandWif()
-  - Retrieve BCH and SLP token UTXO information from the blockchain with
-    populateObjectFromNetwork()
-  - Sweep with the sweepTo() method:
-    -
+- Ensure fee can be paid, return fee source
 
-*
-Sweep a private key with a single token class and no BCH.
-Sweep a private key with two classes of tokens and no BCH.
-Sweep a prviate key with a single token class and some BCH.
-Sweep a private key with a two classes of tokens and some BCH.
-Sweep private key with single token class but multiple UTXOs and multiple BCH-only UTXOs.
-Sweep private key with two token classes and multiple UTXOS of each, and multiple BCH-only UTXOs.
-*
+- If paper wallet has more than one token class, throw error.
 
-  TODO:
+- app requests split dust from ABC chain
 
+- app waits until ABC indexer shows dust transaction
+
+- BCH and tokens are swept to ABC address, , including the new dust
+
+- BCH and tokens are swept to BCHN address
 */
 
 'use strict'
 
 // Public npm libraries
 const BCHJS = require('@psf/bch-js')
-
-// Local libraries
-const TransactionLib = require('./lib/transactions')
-const Blockchain = require('./lib/blockchain')
+const Sweeper = require('bch-token-sweep/index')
 
 // Constants
-const FULLSTACK_MAINNET_API_FREE = 'https://free-main.fullstack.cash/v3/'
-const DEFAULT_BCH_WRAPPER = new BCHJS({ restURL: FULLSTACK_MAINNET_API_FREE })
+const ABC_FREE_MAINNET = 'https://free-main.fullstack.cash/v3/'
+const BCHN_FREE_MAINNET = 'https://bchn-free-main.fullstack.cash/v3/'
 
-class Sweeper {
+// Local libraries
+// const TransactionLib = require('./lib/transactions')
+// const Blockchain = require('./lib/blockchain')
+const SplitLib = require('./lib/split')
+
+// Constants
+// const FULLSTACK_MAINNET_API_FREE = 'https://free-main.fullstack.cash/v3/'
+// const DEFAULT_BCH_WRAPPER = new BCHJS({ restURL: FULLSTACK_MAINNET_API_FREE })
+
+class Splitter {
   constructor (wifFromPaperWallet, wifFromReceiver, BCHWrapper) {
-    // This is an instance of bch-js. It will default to its own instance if one
-    // is not provided.
-    this.bchWrapper = BCHWrapper
-    if (!BCHWrapper) {
-      this.bchWrapper = DEFAULT_BCH_WRAPPER
-    }
+    // Default to ABC.
+    const bchjsAbc = new BCHJS({ restURL: ABC_FREE_MAINNET })
 
-    // Pass the bch-js instance to the other support libraries.
-    const config = {
-      bchjs: this.bchWrapper
-    }
+    // Instantiate bch-js
+    this.bchjsAbc = bchjsAbc
+    this.bchjsBchn = new BCHJS({ restURL: BCHN_FREE_MAINNET })
 
-    // Encapsulate the support libraries.
-    this.blockchain = new Blockchain(config)
+    // Instantiate and encapsulate the Sweeper library.
+    this.abcSweeper = new Sweeper(
+      wifFromPaperWallet,
+      wifFromReceiver,
+      this.bchjsAbc
+    )
+    this.bchnSweeper = new Sweeper(
+      wifFromPaperWallet,
+      wifFromReceiver,
+      this.bchjsBchn
+    )
 
-    // Private key contained on the paper wallet.
-    if (!wifFromPaperWallet) {
-      throw new Error('WIF from paper wallet is required')
-    }
-    this.paper = this.blockchain.expandWif(wifFromPaperWallet)
-
-    // ToDo: A WIF from the reciever should not be required in all use cases.
-    // If there is BCH on the paper wallet, it can be used to pay transaction fees.
-    if (!wifFromReceiver) {
-      throw new Error('WIF from receiver is required')
-    }
-    this.receiver = this.blockchain.expandWif(wifFromReceiver)
-
-    // Instantiate and encapsulate the transactions library.
-    config.paperWif = wifFromPaperWallet
-    config.receiverWif = wifFromReceiver
-    this.transactions = new TransactionLib(config)
+    // Instantiate the biz-logic utility library.
+    this.splitLib = new SplitLib()
   }
 
-  // Constructors are not able to make async calls, therefore we need this
-  // function in order to finish populating the object.
-  // This function retrieves UTXO and balance data from an indexer for the
-  // paper wallet and reciever wallet.
-  async populateObjectFromNetwork () {
+  // Get blockchain information for the paper wallet from each network.
+  // Since constructors can not make async calls, this is the first call that
+  // should be made after instantiating this library. It finishes initializing
+  // the instance.
+  async getBlockchainData () {
     try {
-      // Get the balance and UTXOs from the reciever wallet.
-      this.BCHBalanceFromReceiver = await this.blockchain.getBalanceForCashAddr(
-        this.receiver.bchAddr
-      )
-      const utxosFromReceiver = await this.blockchain.getUtxos(
-        this.receiver.bchAddr
-      )
-      const filteredUtxosFromReceiver = await this.blockchain.filterUtxosByTokenAndBch(
-        utxosFromReceiver
-      )
+      await this.abcSweeper.populateObjectFromNetwork()
+      await this.bchnSweeper.populateObjectFromNetwork()
 
-      // Get the balance and UTXOs from the paper wallet.
-      this.BCHBalanceFromPaperWallet = await this.blockchain.getBalanceForCashAddr(
-        this.paper.bchAddr
-      )
-      const utxosFromPaperWallet = await this.blockchain.getUtxos(
-        this.paper.bchAddr
-      )
-      const filteredUtxosFromPaperWallet = await this.blockchain.filterUtxosByTokenAndBch(
-        utxosFromPaperWallet
-      )
+      this.abcSweeper.paper.balance = this.abcSweeper.BCHBalanceFromPaperWallet
+      this.abcSweeper.paper.utxos = this.abcSweeper.UTXOsFromPaperWallet
+      // console.log('ABC Paper wallet: ', this.abcSweeper.paper)
+      // console.log(`ABC Paper wallet utxos: ${JSON.stringify(this.abcSweeper.paper.utxos, null, 2)}`)
 
-      // Set a bunch of values in the instance?
-      this.UTXOsFromReceiver = {}
-      this.UTXOsFromReceiver.bchUTXOs = filteredUtxosFromReceiver.bchUTXOs
-      this.UTXOsFromPaperWallet = {}
-      this.UTXOsFromPaperWallet.tokenUTXOs =
-        filteredUtxosFromPaperWallet.tokenUTXOs
-      this.UTXOsFromPaperWallet.bchUTXOs = filteredUtxosFromPaperWallet.bchUTXOs
+      this.bchnSweeper.paper.balance = this.bchnSweeper.BCHBalanceFromPaperWallet
+      this.bchnSweeper.paper.utxos = this.bchnSweeper.UTXOsFromPaperWallet
+      // console.log('BCHN Paper wallet: ', this.abcSweeper.paper)
+
+      this.abcSweeper.receiver.balance = this.abcSweeper.BCHBalanceFromReceiver
+      this.abcSweeper.receiver.utxos = this.abcSweeper.UTXOsFromReceiver
+      // console.log('ABC Receiver wallet: ', this.abcSweeper.receiver)
+      // console.log(`ABC Receiver wallet utxos: ${JSON.stringify(this.abcSweeper.receiver.utxos, null, 2)}`)
+
+      this.bchnSweeper.receiver.balance = this.bchnSweeper.BCHBalanceFromReceiver
+      this.bchnSweeper.receiver.utxos = this.bchnSweeper.UTXOsFromReceiver
+      // console.log('BCHN Receiver wallet: ', this.bchnSweeper.receiver)
+      // console.log(`BCHN Receiver wallet utxos: ${JSON.stringify(this.bchnSweeper.receiver.utxos, null, 2)}`)
     } catch (e) {
-      console.error('Error in populateObjectFromNetwork()')
+      console.error('Error in getBlockchainData()')
       // throw new Error(e.message)
       throw e
     }
   }
 
-  // A support function. Returns an array of token IDs for the different
-  // classes of tokens held on the paper wallet.
-  getTokenIds (tokenUtxos) {
+  // This is the macro function that orchestrates the splitting of BCH and SLP
+  // tokens. This function assumes that getBlockchainData() has already been
+  // executed and the instance of this class has already been populated with
+  // blockchain data.
+  async splitCoins (toAbcAddr, toBchnAddr) {
     try {
-      const tokenIds = []
-
-      if (!Array.isArray(tokenUtxos)) throw new Error('Input must be an array')
-
-      // Loop through each UTXO.
-      for (let i = 0; i < tokenUtxos.length; i++) {
-        const utxo = tokenUtxos[i]
-
-        // Has the token ID already been added to the array?
-        const idExists = tokenIds.find(elem => elem === utxo.tokenId)
-        // console.log(`idExists: ${JSON.stringify(idExists, null, 2)}`)
-
-        // If not, add the token ID to the array.
-        if (!idExists) tokenIds.push(utxo.tokenId)
-      }
-
-      return tokenIds
-    } catch (err) {
-      console.error('Error in getTokenIds()')
-      throw err
-    }
-  }
-
-  // Generates an returns an hex-encoded transaction, ready to be broadcast to
-  // the BCH network, for sweeping tokens and/or BCH from a paper wallet.
-  async sweepTo (toSLPAddr) {
-    // console.log(
-    //   `this.UTXOsFromPaperWallet: ${JSON.stringify(
-    //     this.UTXOsFromPaperWallet,
-    //     null,
-    //     2
-    //   )}`
-    // )
-
-    try {
-      let hex = ''
-
-      // Identify the token ID to be swept.
-      const tokenIds = this.getTokenIds(this.UTXOsFromPaperWallet.tokenUTXOs)
-
-      // If there are no token UTXOs, then this is a BCH-only sweep.
-      if (tokenIds.length === 0) {
-        // If there is no tokens AND no BCH, throw an error.
-        if (this.UTXOsFromPaperWallet.bchUTXOs.length === 0) {
-          throw new Error('No BCH or tokens found on paper wallet')
-        }
-
-        // If there is not enough BCH, throw an error
-        if (this.BCHBalanceFromPaperWallet < 3000) {
-          throw new Error('Not enough BCH on paper wallet to pay fees.')
-        }
-
-        // Generate a BCH-only sweep transaction.
-        hex = this.transactions.buildSweepOnlyBchFromPaper(
-          this.UTXOsFromPaperWallet.bchUTXOs
-        )
-
-        return hex
-      }
-
-      // Filter the token UTXOs for the selected token.
-      const selectedTokenId = tokenIds[0]
-      const selectedTokenUtxos = this.UTXOsFromPaperWallet.tokenUTXOs.filter(
-        elem => elem.tokenId === selectedTokenId
+      // Ensure fee can be paid, return fee source
+      const feeSource = this.splitLib.determineFeeSource(
+        this.abcSweeper,
+        this.bchnSweeper
       )
+      if (!feeSource) throw new Error('Not enough BCH to pay splitting fee')
 
-      // If the paper wallet has no BCH, pay the TX fees from the receiver wallet.
-      if (this.UTXOsFromPaperWallet.bchUTXOs.length === 0) {
-        // Retrieve *only* the token UTXOs for the selected token.
+      // app requests split dust from ABC chain
+      const dustTxid = await this.splitLib.getDust(this.abcSweeper)
+      console.log(`txid from dust faucet: ${dustTxid}`)
 
-        console.log(
-          'No BCH found on paper wallet. Sweeping with BCH from the reciever wallet.'
-        )
+      // app waits until ABC indexer shows dust transaction
+      let dustArrived = false
+      while (!dustArrived) {
+        const now = new Date()
+        console.log(`Checking that split dust was delivered... ${now.toLocaleString()}`)
 
-        // Generate a token sweep using BCH from the receiver wallet to pay
-        // transaction fees.
-        hex = this.transactions.buildSweepSingleTokenWithoutBchFromPaper(
-          selectedTokenUtxos,
-          this.UTXOsFromReceiver.bchUTXOs
-        )
-      } else {
-        // Sweep using BCH from the paper wallet to pay TX fees.
+        // Wait 2 seconds between retries.
+        await this.splitLib.sleep(2000)
 
-        console.log(
-          'BCH found on paper wallet, sweeping with BCH from the paper wallet.'
-        )
-
-        // Generate a token sweep using BCH from the paper wallet to pay
-        // transaction fees.
-        hex = this.transactions.buildSweepSingleTokenWithBchFromPaper(
-          selectedTokenUtxos,
-          this.UTXOsFromPaperWallet.bchUTXOs
-        )
+        dustArrived = await this.splitLib.verifyDust(this.abcSweeper, dustTxid)
       }
 
-      return hex
+      // BCH and tokens are swept to ABC address, , including the new dust
+      const hexAbc = await this.abcSweeper.sweepTo(toAbcAddr)
+      // const txidAbc = await this.abcSweeper.blockchain.broadcast(hexAbc)
+
+      // BCH and tokens are swept to BCHN address
+      const hexBchn = await this.bchnSweeper.sweepTo(toBchnAddr)
+      // const txidBchn = await this.bchnSweeper.blockchain.broadcast(hexBchn)
+
+      return { hexAbc, hexBchn }
+      // return { txidAbc, txidBchn }
     } catch (err) {
-      console.error('Error in sweepTo()')
+      console.error('Error in splitCoins()')
       throw err
     }
   }
 }
 
-module.exports = Sweeper
+module.exports = Splitter
