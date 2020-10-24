@@ -8,8 +8,8 @@
 */
 
 // These are the WIF (private keys) used to operate the test.
-const receiverWif = 'KxtteuKQ2enad5jH2o5eGkSaTgas49kWmvADW6qqhLAURrxuUo7m'
-const paperWif = 'L3nSksvTtHHBRP3HNMDhy6hDKpu88PQvrLGzLJn3FYX2diKqC1GD'
+const receiverWif = 'L3nSksvTtHHBRP3HNMDhy6hDKpu88PQvrLGzLJn3FYX2diKqC1GD'
+const paperWif = 'KxtteuKQ2enad5jH2o5eGkSaTgas49kWmvADW6qqhLAURrxuUo7m'
 
 // Unit under test
 const SplitterLib = require('../../index')
@@ -22,13 +22,13 @@ async function runTest () {
 
     await checkSetup(splitterLib)
 
-    console.log(
-      `UTXOsFromPaperWallet: ${JSON.stringify(
-        splitterLib.abcSweeper.UTXOsFromPaperWallet,
-        null,
-        2
-      )}`
-    )
+    // console.log(
+    //   `UTXOsFromPaperWallet: ${JSON.stringify(
+    //     splitterLib.abcSweeper.UTXOsFromPaperWallet,
+    //     null,
+    //     2
+    //   )}`
+    // )
 
     const { hexAbc, hexBchn } = await splitterLib.splitCoins(
       splitterLib.abcSweeper.receiver.slpAddr,
