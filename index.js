@@ -124,6 +124,7 @@ class Splitter {
 
         dustArrived = await this.splitLib.verifyDust(this.abcSweeper, dustTxid)
       }
+      // There *are* tokens on the paper wallet.
 
       // BCH and tokens are swept to ABC address, , including the new dust
       const hexAbc = await this.abcSweeper.sweepTo(toAbcAddr)
