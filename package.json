@@ -38,13 +38,13 @@
   },
   "repository": "Permissionless-Software-Foundation/bch-token-split",
   "dependencies": {
-    "@psf/bch-js": "^3.8.2",
-    "apidoc": "^0.23.0",
     "bch-donation": "^1.1.0",
     "bch-token-sweep": "^1.4.6",
     "bignumber.js": "^9.0.0"
   },
   "devDependencies": {
+    "@psf/bch-js": "^3.8.4",
+    "apidoc": "^0.25.0",
     "browserify": "^16.5.2",
     "chai": "^4.1.2",
     "coveralls": "^3.0.2",
