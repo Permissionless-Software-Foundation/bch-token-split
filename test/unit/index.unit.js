@@ -5,6 +5,7 @@
 // External npm libraries
 const assert = require('chai').assert
 const sinon = require('sinon')
+const BCHJS = require('@psf/bch-js')
 
 // Local libraries
 const SplitLib = require('../../index')
@@ -21,14 +22,14 @@ describe('#index.js', () => {
   beforeEach(() => {
     sandbox = sinon.createSandbox()
 
-    uut = new SplitLib(paperWIF, receiverWIF)
+    uut = new SplitLib(paperWIF, receiverWIF, BCHJS)
   })
 
   afterEach(() => sandbox.restore())
 
   describe('#constructor', () => {
     it('should instantiate the sweep library', () => {
-      uut = new SplitLib(paperWIF, receiverWIF)
+      uut = new SplitLib(paperWIF, receiverWIF, BCHJS)
 
       assert.property(uut, 'abcSweeper')
       assert.property(uut, 'bchnSweeper')
@@ -36,7 +37,7 @@ describe('#index.js', () => {
 
     it('should throw an error if paper wallet wif is not included', () => {
       try {
-        uut = new SplitLib()
+        uut = new SplitLib(undefined, undefined, BCHJS)
 
         assert.fail('Unexpected result')
       } catch (err) {
@@ -46,11 +47,21 @@ describe('#index.js', () => {
 
     it('should throw an error if receiver wallet wif is not included', () => {
       try {
-        uut = new SplitLib(paperWIF)
+        uut = new SplitLib(paperWIF, undefined, BCHJS)
 
         assert.fail('Unexpected result')
       } catch (err) {
         assert.include(err.message, 'WIF from receiver is required')
+      }
+    })
+
+    it('should throw an error if BCHJS class is not included', () => {
+      try {
+        uut = new SplitLib(paperWIF, receiverWIF)
+
+        assert.fail('Unexpected result')
+      } catch (err) {
+        assert.include(err.message, 'BCH-JS Class must be passed when instantiating.')
       }
     })
   })

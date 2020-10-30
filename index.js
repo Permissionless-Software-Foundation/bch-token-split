@@ -14,7 +14,6 @@
 'use strict'
 
 // Public npm libraries
-const BCHJS = require('@psf/bch-js')
 const Sweeper = require('bch-token-sweep/index')
 
 // Constants
@@ -33,12 +32,18 @@ const DONATION = 2000
 
 class Splitter {
   constructor (wifFromPaperWallet, wifFromReceiver, BCHWrapper) {
+    // This is the BCH Class, not an instance.
+    this.BCHWrapper = BCHWrapper
+    if (!BCHWrapper) {
+      throw new Error('BCH-JS Class must be passed when instantiating.')
+    }
+
     // Default to ABC.
-    const bchjsAbc = new BCHJS({ restURL: ABC_FREE_MAINNET })
+    const bchjsAbc = new this.BCHWrapper({ restURL: ABC_FREE_MAINNET })
 
     // Instantiate bch-js
     this.bchjsAbc = bchjsAbc
-    this.bchjsBchn = new BCHJS({ restURL: BCHN_FREE_MAINNET })
+    this.bchjsBchn = new this.BCHWrapper({ restURL: BCHN_FREE_MAINNET })
 
     // Instantiate and encapsulate the Sweeper library.
     this.abcSweeper = new Sweeper(
@@ -56,7 +61,8 @@ class Splitter {
 
     // Instantiate the biz-logic utility library.
     const config = {
-      donation: DONATION
+      donation: DONATION,
+      BCHWrapper
     }
     this.splitLib = new SplitLib(config)
   }
