@@ -26,6 +26,25 @@ describe('#split.js', () => {
 
   afterEach(() => sandbox.restore())
 
+  describe('#constructor', () => {
+    it('should use default dust server if no config passed', () => {
+      const defaultDustServer = 'https://dust-faucet.splitbch.com'
+
+      const thisUut = new SplitUtilLib({})
+
+      assert.equal(thisUut.dustServer, defaultDustServer)
+    })
+
+    it('should use a different dust server', () => {
+      const config = {
+        dustServer: 'http://localhost:1234'
+      }
+      const thisUut = new SplitUtilLib(config)
+
+      assert.equal(thisUut.dustServer, config.dustServer)
+    })
+  })
+
   describe('#determineFeeSource', () => {
     it('should return 0 if no source has enough funds', () => {
       mockData.mockSweeper.paper.balance = 546
