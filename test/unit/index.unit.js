@@ -64,6 +64,15 @@ describe('#index.js', () => {
         assert.include(err.message, 'BCH-JS Class must be passed when instantiating.')
       }
     })
+
+    it('should use a different dust server', () => {
+      const config = {
+        dustServer: 'http://localhost:1234'
+      }
+      const thisUut = new SplitLib(paperWIF, receiverWIF, BCHJS, config)
+
+      assert.equal(thisUut.splitLib.dustServer, config.dustServer)
+    })
   })
 
   describe('#getBlockchainData', () => {
