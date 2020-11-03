@@ -31,7 +31,7 @@ const SplitLib = require('./lib/split')
 const DONATION = 2000
 
 class Splitter {
-  constructor (wifFromPaperWallet, wifFromReceiver, BCHWrapper) {
+  constructor (wifFromPaperWallet, wifFromReceiver, BCHWrapper, config) {
     // This is the BCH Class, not an instance.
     this.BCHWrapper = BCHWrapper
     if (!BCHWrapper) {
@@ -60,11 +60,19 @@ class Splitter {
     )
 
     // Instantiate the biz-logic utility library.
-    const config = {
+    const configObj = {
       donation: DONATION,
       BCHWrapper
     }
-    this.splitLib = new SplitLib(config)
+
+    const DUST_SERVER = 'https://dust-faucet.splitbch.com'
+    if (config && config.dustServer) {
+      configObj.dustServer = config.dustServer
+    } else {
+      configObj.dustServer = DUST_SERVER
+    }
+
+    this.splitLib = new SplitLib(configObj)
   }
 
   // Get blockchain information for the paper wallet from each network.
