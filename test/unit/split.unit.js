@@ -28,20 +28,22 @@ describe('#split.js', () => {
 
   describe('#constructor', () => {
     it('should use default dust server if no config passed', () => {
-      const defaultDustServer = 'https://dust-faucet.splitbch.com'
+      const DUST_SERVER_ABC = 'https://dust-faucet-abc.splitbch.com'
+      const DUST_SERVER_BCHN = 'https://dust-faucet-bchn.splitbch.com'
 
       const thisUut = new SplitUtilLib({})
 
-      assert.equal(thisUut.dustServer, defaultDustServer)
+      assert.equal(thisUut.dustServerAbc, DUST_SERVER_ABC)
+      assert.equal(thisUut.dustServerBchn, DUST_SERVER_BCHN)
     })
 
     it('should use a different dust server', () => {
       const config = {
-        dustServer: 'http://localhost:1234'
+        dustServerAbc: 'http://localhost:1234'
       }
       const thisUut = new SplitUtilLib(config)
 
-      assert.equal(thisUut.dustServer, config.dustServer)
+      assert.equal(thisUut.dustServerAbc, config.dustServerAbc)
     })
   })
 
@@ -149,13 +151,13 @@ describe('#split.js', () => {
     })
   })
 
-  describe('#getDust', () => {
+  describe('#getDustAbc', () => {
     it('should get dust from faucet', async () => {
       sandbox
         .stub(uut.axios, 'request')
         .resolves({ data: mockData.mockGetDust })
 
-      const result = await uut.getDust(mockData.mockSweeper)
+      const result = await uut.getDustAbc(mockData.mockSweeper)
       // console.log(`result: ${JSON.stringify(result, null, 2)}`)
 
       assert.isString(result)
@@ -166,7 +168,7 @@ describe('#split.js', () => {
         // Mock live network calls.
         sandbox.stub(uut.axios, 'request').rejects(new Error('test error'))
 
-        await uut.getDust(mockData.mockSweeper)
+        await uut.getDustAbc(mockData.mockSweeper)
 
         assert.fail('Unexpected result')
       } catch (err) {
@@ -175,7 +177,33 @@ describe('#split.js', () => {
     })
   })
 
-  describe('#verifyDust', () => {
+  describe('#getDustBchn', () => {
+    it('should get dust from faucet', async () => {
+      sandbox
+        .stub(uut.axios, 'request')
+        .resolves({ data: mockData.mockGetDust })
+
+      const result = await uut.getDustBchn(mockData.mockSweeper)
+      // console.log(`result: ${JSON.stringify(result, null, 2)}`)
+
+      assert.isString(result)
+    })
+
+    it('should catch and throw an error', async () => {
+      try {
+        // Mock live network calls.
+        sandbox.stub(uut.axios, 'request').rejects(new Error('test error'))
+
+        await uut.getDustBchn(mockData.mockSweeper)
+
+        assert.fail('Unexpected result')
+      } catch (err) {
+        assert.include(err.message, 'test error')
+      }
+    })
+  })
+
+  describe('#verifyDustAbc', () => {
     it('should return true if TXID matches', async () => {
       // Add the mock dust UTXO to the mocked Sweeper instance.
       // mockData.mockSweeper.paper.utxos = cloneDeep(
@@ -189,7 +217,7 @@ describe('#split.js', () => {
       // Get the txid from the mock returned value of getDust()
       const txid = mockData.mockGetDust.txid
 
-      const result = await uut.verifyDust(mockData.mockSweeper, txid)
+      const result = await uut.verifyDustAbc(mockData.mockSweeper, txid)
       assert.equal(result, true)
     })
 
@@ -200,7 +228,7 @@ describe('#split.js', () => {
         bchUTXOs: [mockData.mockSweeper.paper.utxos.bchUtxos]
       }
 
-      const result = await uut.verifyDust(mockData.mockSweeper, txid)
+      const result = await uut.verifyDustAbc(mockData.mockSweeper, txid)
       assert.equal(result, false)
     })
 
@@ -213,7 +241,52 @@ describe('#split.js', () => {
 
         const txid = mockData.mockGetDust.txid
 
-        await uut.verifyDust(mockData.mockSweeper, txid)
+        await uut.verifyDustAbc(mockData.mockSweeper, txid)
+      } catch (err) {
+        assert.include(err.message, 'test error')
+      }
+    })
+  })
+
+  describe('#verifyDustBchn', () => {
+    it('should return true if TXID matches', async () => {
+      // Add the mock dust UTXO to the mocked Sweeper instance.
+      // mockData.mockSweeper.paper.utxos = cloneDeep(
+      //   mockDataLib.mockSweeper.paper.utxos
+      // )
+      // mockData.mockSweeper.paper.utxos.bchUtxos.push(mockData.mockDustUtxo)
+      mockData.mockSweeper.UTXOsFromPaperWallet = {
+        bchUTXOs: [mockData.mockDustUtxo]
+      }
+
+      // Get the txid from the mock returned value of getDust()
+      const txid = mockData.mockGetDust.txid
+
+      const result = await uut.verifyDustBchn(mockData.mockSweeper, txid)
+      assert.equal(result, true)
+    })
+
+    it('should return false if TXID is not found', async () => {
+      // Get the txid from the mock returned value of getDust()
+      const txid = mockData.mockGetDust.txid
+      mockData.mockSweeper.UTXOsFromPaperWallet = {
+        bchUTXOs: [mockData.mockSweeper.paper.utxos.bchUtxos]
+      }
+
+      const result = await uut.verifyDustBchn(mockData.mockSweeper, txid)
+      assert.equal(result, false)
+    })
+
+    it('should catch and throw an error', async () => {
+      try {
+        // Force an error.
+        sandbox
+          .stub(mockData.mockSweeper, 'populateObjectFromNetwork')
+          .rejects(new Error('test error'))
+
+        const txid = mockData.mockGetDust.txid
+
+        await uut.verifyDustBchn(mockData.mockSweeper, txid)
       } catch (err) {
         assert.include(err.message, 'test error')
       }
