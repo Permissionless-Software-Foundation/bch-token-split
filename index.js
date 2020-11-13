@@ -17,8 +17,8 @@
 const Sweeper = require('bch-token-sweep/index')
 
 // Constants
-const ABC_FREE_MAINNET = 'https://free-main.fullstack.cash/v3/'
-const BCHN_FREE_MAINNET = 'https://bchn-free-main.fullstack.cash/v3/'
+const ABC_FREE_MAINNET = 'https://abc.fullstack.cash/v3/'
+const BCHN_FREE_MAINNET = 'https://bchn.fullstack.cash/v3/'
 
 // Local libraries
 // const TransactionLib = require('./lib/transactions')
@@ -65,11 +65,19 @@ class Splitter {
       BCHWrapper
     }
 
-    const DUST_SERVER = 'https://dust-faucet.splitbch.com'
-    if (config && config.dustServer) {
-      configObj.dustServer = config.dustServer
+    const DUST_SERVER_ABC = 'https://dust-faucet-abc.splitbch.com'
+    const DUST_SERVER_BCHN = 'https://dust-faucet-bchn.splitbch.com'
+
+    if (config && config.dustServerAbc) {
+      configObj.dustServerAbc = config.dustServerAbc
     } else {
-      configObj.dustServer = DUST_SERVER
+      configObj.dustServerAbc = DUST_SERVER_ABC
+    }
+
+    if (config && config.dustServerBchn) {
+      configObj.dustServerBchn = config.dustServerBchn
+    } else {
+      configObj.dustServerBchn = DUST_SERVER_BCHN
     }
 
     this.splitLib = new SplitLib(configObj)
@@ -124,21 +132,46 @@ class Splitter {
       if (!feeSource) throw new Error('Not enough BCH to pay splitting fee')
 
       // app requests split dust from ABC chain
-      const dustTxid = await this.splitLib.getDust(this.abcSweeper)
-      console.log(`txid from dust faucet: ${dustTxid}`)
+      const dustAbcTxid = await this.splitLib.getDustAbc(this.abcSweeper)
+      console.log(`txid from ABC dust faucet: ${dustAbcTxid}`)
+
+      // app requests split dust from BCHN chain
+      const dustBchnTxid = await this.splitLib.getDustBchn(this.bchnSweeper)
+      console.log(`txid from BCHN dust faucet: ${dustBchnTxid}`)
 
       // app waits until ABC indexer shows dust transaction
-      let dustArrived = false
-      while (!dustArrived) {
+      let dustAbcArrived = false
+      while (!dustAbcArrived) {
         const now = new Date()
-        console.log(`Checking that split dust was delivered... ${now.toLocaleString()}`)
+        console.log(
+          `Checking that ABC split dust was delivered... ${now.toLocaleString()}`
+        )
 
         // Wait 2 seconds between retries.
         await this.splitLib.sleep(2000)
 
-        dustArrived = await this.splitLib.verifyDust(this.abcSweeper, dustTxid)
+        dustAbcArrived = await this.splitLib.verifyDustAbc(
+          this.abcSweeper,
+          dustAbcTxid
+        )
       }
-      // There *are* tokens on the paper wallet.
+
+      // app waits until ABC indexer shows dust transaction
+      let dustBchnArrived = false
+      while (!dustBchnArrived) {
+        const now = new Date()
+        console.log(
+          `Checking that BCHN split dust was delivered... ${now.toLocaleString()}`
+        )
+
+        // Wait 2 seconds between retries.
+        await this.splitLib.sleep(2000)
+
+        dustBchnArrived = await this.splitLib.verifyDustBchn(
+          this.bchnSweeper,
+          dustBchnTxid
+        )
+      }
 
       // BCH and tokens are swept to ABC address, , including the new dust
       const hexAbc = await this.abcSweeper.sweepTo(toAbcAddr)

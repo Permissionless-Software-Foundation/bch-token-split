@@ -67,11 +67,13 @@ describe('#index.js', () => {
 
     it('should use a different dust server', () => {
       const config = {
-        dustServer: 'http://localhost:1234'
+        dustServerAbc: 'http://localhost:1234',
+        dustServerBchn: 'http://127.0.0.1:5678'
       }
       const thisUut = new SplitLib(paperWIF, receiverWIF, BCHJS, config)
 
-      assert.equal(thisUut.splitLib.dustServer, config.dustServer)
+      assert.equal(thisUut.splitLib.dustServerAbc, config.dustServerAbc)
+      assert.equal(thisUut.splitLib.dustServerBchn, config.dustServerBchn)
     })
   })
 
@@ -105,9 +107,11 @@ describe('#index.js', () => {
     it('should return two hex transactions', async () => {
       // Mock dependent functions to force the 'happy path'.
       sandbox.stub(uut.splitLib, 'determineFeeSource').returns(1)
-      sandbox.stub(uut.splitLib, 'getDust').resolves('test txid')
+      sandbox.stub(uut.splitLib, 'getDustAbc').resolves('test txid')
+      sandbox.stub(uut.splitLib, 'getDustBchn').resolves('test txid')
       sandbox.stub(uut.splitLib, 'sleep').resolves()
-      sandbox.stub(uut.splitLib, 'verifyDust').resolves(true)
+      sandbox.stub(uut.splitLib, 'verifyDustAbc').resolves(true)
+      sandbox.stub(uut.splitLib, 'verifyDustBchn').resolves(true)
       sandbox.stub(uut.abcSweeper, 'sweepTo').resolves('hex1 string')
       sandbox.stub(uut.bchnSweeper, 'sweepTo').resolves('hex2 string')
 
