@@ -22,14 +22,21 @@ describe('#index.js', () => {
   beforeEach(() => {
     sandbox = sinon.createSandbox()
 
-    uut = new SplitLib(paperWIF, receiverWIF, BCHJS)
+    const config = {
+      abcToAddr: 'bitcoincash:qqaw47jeez06eexd0rgl0l6lnp277vwmrsc247hf8k'
+    }
+    uut = new SplitLib(paperWIF, receiverWIF, BCHJS, config)
   })
 
   afterEach(() => sandbox.restore())
 
   describe('#constructor', () => {
     it('should instantiate the sweep library', () => {
-      uut = new SplitLib(paperWIF, receiverWIF, BCHJS)
+      const config = {
+        abcToAddr: 'bitcoincash:qqaw47jeez06eexd0rgl0l6lnp277vwmrsc247hf8k'
+      }
+
+      uut = new SplitLib(paperWIF, receiverWIF, BCHJS, config)
 
       assert.property(uut, 'abcSweeper')
       assert.property(uut, 'bchnSweeper')
@@ -37,7 +44,11 @@ describe('#index.js', () => {
 
     it('should throw an error if paper wallet wif is not included', () => {
       try {
-        uut = new SplitLib(undefined, undefined, BCHJS)
+        const config = {
+          abcToAddr: 'bitcoincash:qqaw47jeez06eexd0rgl0l6lnp277vwmrsc247hf8k'
+        }
+
+        uut = new SplitLib(undefined, undefined, BCHJS, config)
 
         assert.fail('Unexpected result')
       } catch (err) {
@@ -47,7 +58,11 @@ describe('#index.js', () => {
 
     it('should throw an error if receiver wallet wif is not included', () => {
       try {
-        uut = new SplitLib(paperWIF, undefined, BCHJS)
+        const config = {
+          abcToAddr: 'bitcoincash:qqaw47jeez06eexd0rgl0l6lnp277vwmrsc247hf8k'
+        }
+
+        uut = new SplitLib(paperWIF, undefined, BCHJS, config)
 
         assert.fail('Unexpected result')
       } catch (err) {
@@ -61,19 +76,34 @@ describe('#index.js', () => {
 
         assert.fail('Unexpected result')
       } catch (err) {
-        assert.include(err.message, 'BCH-JS Class must be passed when instantiating.')
+        assert.include(
+          err.message,
+          'BCH-JS Class must be passed when instantiating.'
+        )
       }
     })
 
     it('should use a different dust server', () => {
       const config = {
         dustServerAbc: 'http://localhost:1234',
-        dustServerBchn: 'http://127.0.0.1:5678'
+        dustServerBchn: 'http://127.0.0.1:5678',
+        abcToAddr: 'bitcoincash:qqaw47jeez06eexd0rgl0l6lnp277vwmrsc247hf8k'
       }
+
       const thisUut = new SplitLib(paperWIF, receiverWIF, BCHJS, config)
 
       assert.equal(thisUut.splitLib.dustServerAbc, config.dustServerAbc)
       assert.equal(thisUut.splitLib.dustServerBchn, config.dustServerBchn)
+    })
+
+    it('should throw an error if ABC to address is not included', () => {
+      try {
+        uut = new SplitLib(paperWIF, receiverWIF, BCHJS)
+
+        assert.fail('Unexpected result')
+      } catch (err) {
+        assert.include(err.message, 'You mus specify an ABC to-address.')
+      }
     })
   })
 
