@@ -45,12 +45,18 @@ class Splitter {
     this.bchjsAbc = bchjsAbc
     this.bchjsBchn = new this.BCHWrapper({ restURL: BCHN_FREE_MAINNET })
 
+    if (!config || !config.abcToAddr) {
+      throw new Error('You mus specify an ABC to-address.')
+    }
+    const abcToAddr = config.abcToAddr
+
     // Instantiate and encapsulate the Sweeper library.
     this.abcSweeper = new Sweeper(
       wifFromPaperWallet,
       wifFromReceiver,
       this.bchjsAbc,
-      DONATION
+      DONATION,
+      abcToAddr // Specify the ABC address to send to.
     )
     this.bchnSweeper = new Sweeper(
       wifFromPaperWallet,
