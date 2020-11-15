@@ -28,8 +28,8 @@ describe('#split.js', () => {
 
   describe('#constructor', () => {
     it('should use default dust server if no config passed', () => {
-      const DUST_SERVER_ABC = 'https://dust-faucet-abc.splitbch.com'
-      const DUST_SERVER_BCHN = 'https://dust-faucet-bchn.splitbch.com'
+      const DUST_SERVER_ABC = 'https://abc-dust.splitbch.com'
+      const DUST_SERVER_BCHN = 'https://bchn-dust.splitbch.com'
 
       const thisUut = new SplitUtilLib({})
 
@@ -73,7 +73,7 @@ describe('#split.js', () => {
       assert.equal(result, 1)
     })
 
-    it('should return 2 if receiver wallet can pay fee in ABC', () => {
+    it('should return 3 if receiver wallet can pay fee in ABC', () => {
       // Simulate a new wallet on the ABC chain that has no balance on the
       // BCHN chain.
       const bchnSweeper = cloneDeep(mockData.mockSweeper)
@@ -87,10 +87,10 @@ describe('#split.js', () => {
       const result = uut.determineFeeSource(mockData.mockSweeper, bchnSweeper)
       // console.log('result: ', result)
 
-      assert.equal(result, 2)
+      assert.equal(result, 3)
     })
 
-    it('should return 3 if receiver wallet can pay fee in BCHN', () => {
+    it('should return 2 if receiver wallet can pay fee in BCHN', () => {
       // Simulate a new wallet on the BCHN chain that has no balance on the
       // ABC chain.
       const abcSweeper = {
@@ -130,7 +130,7 @@ describe('#split.js', () => {
       const result = uut.determineFeeSource(abcSweeper, bchnSweeper)
       // console.log('result: ', result)
 
-      assert.equal(result, 3)
+      assert.equal(result, 2)
     })
 
     it('should return 0 for improper input', () => {
