@@ -65,8 +65,8 @@ class Splitter {
       BCHWrapper
     }
 
-    const DUST_SERVER_ABC = 'https://dust-faucet-abc.splitbch.com'
-    const DUST_SERVER_BCHN = 'https://dust-faucet-bchn.splitbch.com'
+    const DUST_SERVER_ABC = 'https://abc-dust.splitbch.com'
+    const DUST_SERVER_BCHN = 'https://bchn-dust.splitbch.com'
 
     if (config && config.dustServerAbc) {
       configObj.dustServerAbc = config.dustServerAbc
