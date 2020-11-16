@@ -56,14 +56,14 @@ class Splitter {
       wifFromPaperWallet,
       wifFromReceiver,
       this.bchjsAbc,
-      DONATION,
+      0, // Zero donation from the ABC chain.
       abcToAddr // Specify the ABC address to send to.
     )
     this.bchnSweeper = new Sweeper(
       wifFromPaperWallet,
       wifFromReceiver,
       this.bchjsBchn,
-      DONATION
+      DONATION // Donation comes from the BCHN chain.
     )
 
     // Instantiate the biz-logic utility library.
@@ -187,13 +187,13 @@ class Splitter {
         )
       }
 
-      // BCH and tokens are swept to ABC address, , including the new dust
-      const hexAbc = await this.abcSweeper.sweepTo(toAbcAddr)
-      // const txidAbc = await this.abcSweeper.blockchain.broadcast(hexAbc)
-
       // BCH and tokens are swept to BCHN address
       const hexBchn = await this.bchnSweeper.sweepTo(toBchnAddr)
       // const txidBchn = await this.bchnSweeper.blockchain.broadcast(hexBchn)
+
+      // BCH and tokens are swept to ABC address, , including the new dust
+      const hexAbc = await this.abcSweeper.sweepTo(toAbcAddr)
+      // const txidAbc = await this.abcSweeper.blockchain.broadcast(hexAbc)
 
       return { hexAbc, hexBchn }
       // return { txidAbc, txidBchn }
