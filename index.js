@@ -28,7 +28,8 @@ const SplitLib = require('./lib/split')
 // Constants
 // const FULLSTACK_MAINNET_API_FREE = 'https://free-main.fullstack.cash/v3/'
 // const DEFAULT_BCH_WRAPPER = new BCHJS({ restURL: FULLSTACK_MAINNET_API_FREE })
-const DONATION = 2000
+// const DONATION = 2000
+const DONATION = 40000
 
 class Splitter {
   constructor (wifFromPaperWallet, wifFromReceiver, BCHWrapper, config) {
@@ -116,6 +117,13 @@ class Splitter {
       this.bchnSweeper.receiver.utxos = this.bchnSweeper.UTXOsFromReceiver
       // console.log('BCHN Receiver wallet: ', this.bchnSweeper.receiver)
       // console.log(`BCHN Receiver wallet utxos: ${JSON.stringify(this.bchnSweeper.receiver.utxos, null, 2)}`)
+
+      // Recalculate the donation amount based on the balance of the paper wallet.
+      const onePercent = Math.floor(this.bchnSweeper.paper.balance * 0.01)
+      console.log(`onePercent: ${onePercent}`)
+      if (onePercent > DONATION) {
+        this.bchnSweeper.donation = onePercent
+      }
     } catch (e) {
       console.error('Error in getBlockchainData()')
       // throw new Error(e.message)
