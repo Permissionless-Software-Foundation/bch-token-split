@@ -39,7 +39,7 @@
   "repository": "Permissionless-Software-Foundation/bch-token-split",
   "dependencies": {
     "bch-donation": "^1.1.0",
-    "bch-token-sweep": "^1.5.5",
+    "bch-token-sweep": "^1.5.6",
     "bignumber.js": "^9.0.0"
   },
   "devDependencies": {
