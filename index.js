@@ -50,7 +50,7 @@ class Splitter {
       throw new Error('You mus specify an ABC to-address.')
     }
     const abcToAddr = config.abcToAddr
-    console.log(`ABC send-to address: ${abcToAddr}`)
+    // console.log(`ABC send-to address: ${abcToAddr}`)
 
     // Instantiate and encapsulate the Sweeper library.
     this.abcSweeper = new Sweeper(
