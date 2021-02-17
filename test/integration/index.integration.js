@@ -1,5 +1,8 @@
 const assert = require('chai').assert
 
+const BCHJS = require('@psf/bch-js')
+// const bchjs = new BCHJS()
+
 // Unit under test
 const Splitter = require('../../index')
 let uut
@@ -9,7 +12,7 @@ const paperWif = 'KxtteuKQ2enad5jH2o5eGkSaTgas49kWmvADW6qqhLAURrxuUo7m'
 
 describe('#index.js', () => {
   beforeEach(async () => {
-    uut = new Splitter(paperWif, receiverWif)
+    uut = new Splitter(paperWif, receiverWif, BCHJS)
   })
 
   describe('#getBlockchainData', () => {
